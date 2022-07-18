@@ -1,6 +1,13 @@
 ﻿{
   "Actions": [
     {
+      "Name": "!! tmp MDM Descr ToDo --> Done",
+      "Enabled": "true",
+      "Execute": "//SR: for working with list of Measures in a single .dax\r\n//use in combination with that \r\n\r\nModel.AllMeasures\r\n    .Where(m=>m.Description == \"ToDo\" && m.Expression.ToLower().Contains(\"done\"))\r\n        .ToList()\r\n        .ForEach(m=>\r\n            {\r\n                m.Description = \"Done\";\r\n            })\r\n        ;",
+      "Tooltip": "placeholder for tmp scripts",
+      "ValidContexts": "Measure"
+    },
+    {
       "Name": "!! tmp MDM Num of MeasuresDone",
       "Enabled": "true",
       "Execute": "Model.AllMeasures\r\n    .Where(m=> (\r\n        m.DisplayFolder == \"MDM KPIs Phase 2\" && \r\n        m.Description.Contains(\"-->\")\r\n        )\r\n    )\r\n    .Count()\r\n\r\n    .Output();",
@@ -25,13 +32,6 @@
       "Name": "Columns.HideSelected",
       "Enabled": "true",
       "Execute": "Selected.Columns\r\n    .ForEach(c=> c.IsHidden = true);",
-      "Tooltip": "",
-      "ValidContexts": "Column"
-    },
-    {
-      "Name": "Columns.SetSummarizationToNone",
-      "Enabled": "true",
-      "Execute": "// SR: sets Summarization of Column to None\r\nSelected.Columns\r\n    .ForEach(\r\n        c=> c.SummarizeBy = \r\n        TabularEditor.TOMWrapper.AggregateFunction.None);\r\n",
       "Tooltip": "",
       "ValidContexts": "Column"
     },
@@ -281,11 +281,11 @@
       "ValidContexts": "Measure"
     },
     {
-      "Name": "!! tmp MDM Descr ToDo --> Done",
+      "Name": "Columns.SetSummarizationToNone",
       "Enabled": "true",
-      "Execute": "//SR: for working with list of Measures in a single .dax\r\n//use in combination with that \r\n\r\nModel.AllMeasures\r\n    .Where(m=>m.Description == \"ToDo\" && m.Expression.ToLower().Contains(\"done\"))\r\n        .ToList()\r\n        .ForEach(m=>\r\n            {\r\n                m.Description = \"Done\";\r\n            })\r\n        ;",
-      "Tooltip": "placeholder for tmp scripts",
-      "ValidContexts": "Measure"
+      "Execute": "// SR: sets Summarization of Column to None\r\nModel.AllColumns.Where(c=> c.SummarizeBy != \r\n                    TabularEditor.TOMWrapper.AggregateFunction.None)\r\n                .ToList()\r\n                .ForEach(\r\n                    c=> c.SummarizeBy = \r\n                    TabularEditor.TOMWrapper.AggregateFunction.None);\r\n",
+      "Tooltip": "",
+      "ValidContexts": "Column"
     }
   ]
 }
