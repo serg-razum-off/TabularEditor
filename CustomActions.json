@@ -283,7 +283,7 @@
     {
       "Name": "!! tmp MDM Descr ToDo --> Done",
       "Enabled": "true",
-      "Execute": "//SR: for working with list of Measures in a single .dax\r\n\r\nModel.AllMeasures\r\n    .Where(m=>m.Description == \"ToDo\" && m.Expression.ToLower().Contains(\"done\"))\r\n        .ToList()\r\n        .ForEach(m=>\r\n            {\r\n                m.Description = \"Done\";\r\n            })\r\n        ;",
+      "Execute": "//SR: for working with list of Measures in a single .dax\r\n//use in combination with that\r\n\r\nModel.AllMeasures\r\n    .Where(m=>m.Description == \"ToDo\" && m.Expression.ToLower().Contains(\"done\"))\r\n        .ToList()\r\n        .ForEach(m=>\r\n            {\r\n                m.Description = \"Done\";\r\n            })\r\n        ;",
       "Tooltip": "placeholder for tmp scripts",
       "ValidContexts": "Measure"
     }
