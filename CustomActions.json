@@ -1,0 +1,291 @@
+﻿{
+  "Actions": [
+    {
+      "Name": "!! tmp MDM Num of MeasuresDone",
+      "Enabled": "true",
+      "Execute": "Model.AllMeasures\r\n    .Where(m=> (\r\n        m.DisplayFolder == \"MDM KPIs Phase 2\" && \r\n        m.Description.Contains(\"-->\")\r\n        )\r\n    )\r\n    .Count()\r\n\r\n    .Output();",
+      "Tooltip": "",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "Columns.Create Measures AND Hide NumColumn",
+      "Enabled": "true",
+      "Execute": "// Hides the numeric column, replacing it with measures\r\nvar Actions = new List<String>();\r\n    Actions.Add(\"SUM\");\r\n    Actions.Add(\"AVERAGE\");\r\n    Actions.Add(\"MIN\");\r\n    Actions.Add(\"MAX\");\r\nforeach(var c in Selected.Columns)\r\n{\r\n    foreach(var act in Actions)\r\n    {\r\n    var newMeasure = c.Table.AddMeasure(\r\n        act + \" \" + c.Name                                 // Name\r\n        , act + \"(\" + c.DaxObjectFullName + \")\"    // DAX expression\r\n        //, c.DisplayFolder                       // Display Folder\r\n        , c.Name                                // Foldef = Measure Name\r\n    );\r\n    \r\n    // Set the format string on the new measure:\r\n    newMeasure.FormatString = \"0.00\";\r\n// Provide some documentation:\r\n    newMeasure.Description = \"This measure is the \" + act +\" of column \" + c.DaxObjectFullName;\r\n// Hide the base column:\r\n    c.IsHidden = true;\r\n    }\r\n}\r\n",
+      "Tooltip": "",
+      "ValidContexts": "Column"
+    },
+    {
+      "Name": "Columns.GetTop100UniqueValuesFromColumn",
+      "Enabled": "true",
+      "Execute": "// SR: Get Top 100 Unique Values\r\nvar table = Selected.Table.Name;\r\nvar column = Selected.Column.Name;\r\n\r\nvar DxE = string.Format(\r\n    \"TOPN(100, VALUES('{0}'[{1}]))\", table, column\r\n);\r\n\r\n//DxE.Output();\r\nEvaluateDax(DxE).Output();\r\n",
+      "Tooltip": "",
+      "ValidContexts": "Column"
+    },
+    {
+      "Name": "Columns.HideSelected",
+      "Enabled": "true",
+      "Execute": "Selected.Columns\r\n    .ForEach(c=> c.IsHidden = true);",
+      "Tooltip": "",
+      "ValidContexts": "Column"
+    },
+    {
+      "Name": "Columns.SetSummarizationToNone",
+      "Enabled": "true",
+      "Execute": "// SR: sets Summarization of Column to None\r\nSelected.Columns\r\n    .ForEach(\r\n        c=> c.SummarizeBy = \r\n        TabularEditor.TOMWrapper.AggregateFunction.None);\r\n",
+      "Tooltip": "",
+      "ValidContexts": "Column"
+    },
+    {
+      "Name": "Columns.UnhideWithUnidingRootTableDescrAnnot",
+      "Enabled": "true",
+      "Execute": "var currDate = DateTime.Today.ToString(\"yyyy-MM-dd\");\r\nvar column = Selected.Column;\r\nvar table = column.Table;\r\n\r\nvar colAnnUpd = column.GetExtendedProperty(\"Upd_Hist\");\r\nvar tblAnnUpd = table.GetExtendedProperty(\"Upd_Hist\");\r\n\r\n\r\n//// SR: TODO: investigate ops over Table. For now PBI dies when updating Table Props\r\n//table.IsHidden = false; //SR: as of 30/11/2021 -- Unhide manually in PBI\r\n//table.Description = string.Format(\"SR[{0}]: unhidden\", currDate) + table.Description;\r\n//table.SetExtendedProperty(\"Upd_Hist\", //\"String\",\r\n//    tblAnnUpd + \"SR:\" + currDate + \": Unhidden, \\r\\n\",\r\n//    TabularEditor.TOMWrapper.ExtendedPropertyType.String); \r\n\r\ncolumn.IsHidden = false;\r\ncolumn.Description = string.Format(\"SR[{0}]: unhidden\", currDate) + column.Description;\r\ncolumn.SetExtendedProperty(\"Upd_Hist\", //\"String\",\r\n    colAnnUpd + \"SR:\" + currDate + \": Unhidden, \\r\\n\",\r\n    TabularEditor.TOMWrapper.ExtendedPropertyType.String); \r\n    \r\n//Selected.Description = \"\";\r\n//Selected.Table.SetExtendedProperty(\"Upd_Hist\", \"\");",
+      "Tooltip": "unhide Column with adding a Descr",
+      "ValidContexts": "Column"
+    },
+    {
+      "Name": "Folder.GetMeasures",
+      "Enabled": "true",
+      "Execute": "//SR: get measures of the selected folder\r\n\r\nvar currMeasureName = Selected.First().Name;\r\nvar displayFolderName = Model.AllMeasures\r\n                        .Where(m => m.Name == currMeasureName)\r\n                        .FirstOrDefault()\r\n                        .DisplayFolder ;\r\n\r\nvar measuresOfFolder = Model.AllMeasures\r\n                        .Where(x => x.DisplayFolder == displayFolderName);\r\n\r\nmeasuresOfFolder.Output();",
+      "Tooltip": "",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "Folder.GetMeasures_AmendDescription",
+      "Enabled": "true",
+      "Execute": "//SR: get measures of the selected folder; amend Description\r\n\r\nvar currMeasureName = Selected.First().Name;\r\nvar displayFolderName = Model.AllMeasures\r\n                        .Where(m => m.Name == currMeasureName)\r\n                        .FirstOrDefault()\r\n                        .DisplayFolder ;\r\n\r\nvar measuresOfFolder = Model.AllMeasures\r\n                        .Where(x => x.DisplayFolder == displayFolderName);\r\n\r\n//measuresOfFolder.ForEach(m => m.Description = m.Description);\r\n\r\nforeach(var m in measuresOfFolder)\r\n{\r\n    m.Description =  m.Description;\r\n};",
+      "Tooltip": "",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "Measures.DAX_Format",
+      "Enabled": "true",
+      "Execute": "\r\nModel.AllMeasures.ToList().ForEach(m=>m.FormatDax());\r\n\r\n//foreach(var m in Model.AllMeasures)\r\n//{\r\n//    m.FormatDax();\r\n//}",
+      "Tooltip": "",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "Measures.ExportToFile",
+      "Enabled": "true",
+      "Execute": "// Export properties for the currently selected objects:\r\n\r\nvar folder = \"C:/Users/Sergii_Razumov/Downloads/\";\r\nvar tsv = ExportProperties(Selected);\r\n\r\nSaveFile(folder + \"MeasureExport.tsv\", tsv);",
+      "Tooltip": "Exports basic Measures properities to File",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "Measures.GetMeasure{Name, Expression} from Folder or Table",
+      "Enabled": "true",
+      "Execute": "// SR: Selects All measures Names + Expression from DispFolder or Table to DataTable\r\n// SR[2022-02-21]: \"\\n//Expression:\" is used in \"TOM.UpdateMeasures_VS_Code\" as identificator of formula start\r\n\r\nusing System.Data;\r\n\r\nvar measures1 = new List<TabularEditor.TOMWrapper.Measure>();\r\n\r\nDataTable result = new DataTable();\r\n    //result.Columns.Add(\"DisplayFolder\");\r\n    result.Columns.Add(\"Name\");\r\n    result.Columns.Add(\"Expression\");\r\n    \r\nvar measures = Selected.Table.Measures.ToList();\r\nif(Selected.First().GetType().ToString() == \"TabularEditor.TOMWrapper.Measure\"){\r\n    measures = Selected.Measures.ToList();\r\n}\r\n\r\nforeach(var r in measures) {\r\n    var newRow = result.NewRow();\r\n    //newRow[\"DisplayFolder\"] = r.DisplayFolder;    \r\n    newRow[\"Name\"] =  r.Name + \" = \";\r\n    newRow[\"Expression\"] = \"\\n//Expression:\" + r.Expression + \r\n    \"\\n-------------------------------------------------------\";\r\n    //.Replace(\"\\n\", \"\");\r\n    result.Rows.Add(newRow);\r\n}\r\nresult.Output();\r\n//qrRes.Output();",
+      "Tooltip": "",
+      "ValidContexts": "Table, Measure"
+    },
+    {
+      "Name": "Measures.GetMeasure{Name, Expression} from Whole DataSet",
+      "Enabled": "true",
+      "Execute": "using System.Data;\r\n\r\n//var measures = Model.AllMeasures.ToList();\r\n\r\nvar result = new DataTable();\r\n    result.Columns.Add(\"measureName\");\r\n    result.Columns.Add(\"Expression\");\r\n    \r\nModel.AllMeasures.ToList().ForEach(m=>\r\n    {\r\n        var newRow = result.NewRow();\r\n            newRow[\"measureName\"] = m.Name + \" = \";\r\n            newRow[\"Expression\"] = m.Expression + \"\\n\";\r\n            \r\n        result.Rows.Add(newRow);\r\n    }\r\n);\r\n\r\nresult.Output();",
+      "Tooltip": "",
+      "ValidContexts": "Model, Table, Measure"
+    },
+    {
+      "Name": "Measures.HideSelected",
+      "Enabled": "true",
+      "Execute": "Selected.Measures\r\n    .ForEach(c=> c.IsHidden = true);",
+      "Tooltip": "",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "Measures.ImportFromFile",
+      "Enabled": "true",
+      "Execute": "// SR: Creation of New measures from file\r\nusing System.IO;\r\nchar delim = '\\t';\r\nvar file = \"C:/Users/Sergii_Razumov/OneDrive - EPAM/!BackUps/Power BI/MeasuresBunker.tsv\";\r\n\r\nvar lookupMeasures = new List<String>\r\n{\r\n    \"KPI Color\",\r\n    \"SR %  inv paid on time KPI Shape\"\r\n};\r\n\r\n//SR: selct folder where to import the measures\r\nvar displFolder = Selected.Measures.FirstOrDefault().DisplayFolder;\r\nvar measureTable = Selected.Measures.FirstOrDefault().Table;\r\n\r\nIEnumerable<string> readFile = File.ReadLines(file);\r\nvar headers = readFile.First().Split(delim);\r\n//headers.Output();\r\n\r\nvar nameIndex = Array.FindIndex(headers, h=> h == \"Name\");\r\nvar exprIndex = Array.FindIndex(headers, h=> h == \"Expression\");\r\n\r\nforeach(var lMeasure in lookupMeasures)\r\n{\r\n    foreach(var row in readFile.Skip(1))\r\n    {\r\n        var measureProp = row.Split(delim);\r\n        if (measureProp[nameIndex] == lMeasure)\r\n        {\r\n             // SR: creation new measure:\r\n            //measureProp[nameIndex].Output();             \r\n            //measureProp[exprIndex].Output();  \r\n            \r\n                var newMeasure = measureTable.AddMeasure(\r\n                    measureProp[nameIndex]                     // Name\r\n                    , measureProp[exprIndex]                  // DAX expression\r\n                    , displFolder                            // Folder\r\n                );\r\n                newMeasure.Description = \"<System>: imported on [\" + DateTime.Today.ToString(\"yyyy/MM/dd\") + \"]\";\r\n                newMeasure.FormatDax();\r\n        };\r\n    };\r\n};\r\n",
+      "Tooltip": "import Measures from tsv file",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "Measures.ResetDisplayFolder",
+      "Enabled": "true",
+      "Execute": "Selected.Measure.DisplayFolder = \"\"; ",
+      "Tooltip": "body of Descr has to be in code",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "Measures.SetFormat = \"0\"",
+      "Enabled": "true",
+      "Execute": "Selected.Measures.FormatString = \"0\";",
+      "Tooltip": "",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "Rel.RelationshipsFromDict_(ToPK)",
+      "Enabled": "true",
+      "Execute": "//SR: Gets all Rels To ( to PK = FROM in Power BI)\r\n\r\nModel.Relationships.Where(r=> \r\n    r.ToColumn.Table.Name == Selected.Table.Name)\r\n    .Output()\r\n    ;",
+      "Tooltip": "",
+      "ValidContexts": "Table"
+    },
+    {
+      "Name": "Rel.RelationshipsToFactT_(FromFK)",
+      "Enabled": "true",
+      "Execute": "//SR: Gets all Rels To ( to PK = FROM in Power BI)\r\nusing System.Data;\r\n\r\nvar result = new DataTable();\r\nresult.Columns.Add(\"TableTo\");\r\nresult.Columns.Add(\"TableFrom\");\r\n\r\nModel.Relationships\r\n    .Where(r=> r.FromColumn.Table.Name == Selected.Table.Name)\r\n    .ToList()\r\n    .ForEach(rl=> \r\n        {\r\n            var newRow = result.NewRow();\r\n            newRow[\"TableTo\"] = rl.Name.Split('>')[0].Replace(\"--\",\"\");\r\n            newRow[\"TableFrom\"] = rl.Name.Split('>')[1];\r\n            result.Rows.Add(newRow);\r\n        })\r\n        ;\r\n\r\nresult.Output();\r\n        \r\n\r\n//SR[2022-02-14]: SB solution\r\n//foreach( var res in query\r\n//    )\r\n//    {\r\n//        sb.Append(res.Name + newline);\r\n//    }\r\n//sb.ToString().Output();\r\n",
+      "Tooltip": "",
+      "ValidContexts": "Table"
+    },
+    {
+      "Name": "Roles.Get_RSL_Expressions",
+      "Enabled": "true",
+      "Execute": "// Getting RLS expressions for Tables of selected Role\r\n\r\nvar tablesRLS = Model\r\n    .Roles.Where(r=> r.Name == Selected.First().Name).First()\r\n        .TablePermissions\r\n        .Select(tp=> new {Table = tp.Name, FE = tp.FilterExpression})\r\n    //.Output()\r\n    ;\r\n    \r\nvar headerLine = string.Join(\",\",\r\n                   tablesRLS.First().GetType().GetProperties().Select(p=>p.Name)\r\n                   );\r\nvar dataLines = from tr in tablesRLS\r\n    let dataline = string.Join(\",\",\r\n        tr.GetType().GetProperties().Select(p=>p.GetValue(tr))\r\n        )\r\n    select dataline;\r\n    \r\nvar csvData = new List<string>();\r\n    csvData.Add(headerLine);\r\n    csvData.AddRange(dataLines);\r\nvar filePath = @\"C:\\Users\\Sergii_Razumov\\Downloads\\TE_Output.csv\";\r\n//System.IO.File.WriteAllLines(filePath, csvData);\r\ndataLines.Output();",
+      "Tooltip": "(correct code to export to .csv)",
+      "ValidContexts": "Role"
+    },
+    {
+      "Name": "Tables.AddCalculatedTable_Placeholder",
+      "Enabled": "true",
+      "Execute": "Model.AddCalculatedTable(\"SR_NewCalcTable\", \"FILTER ( { 1 }, FALSE )\");",
+      "Tooltip": "",
+      "ValidContexts": "Model, Table"
+    },
+    {
+      "Name": "Tables.GetColumnsNames",
+      "Enabled": "true",
+      "Execute": "//SR: Shows Columns Names for Selected Tables\r\n\r\nusing System.Data;\r\n\r\nvar resultDT = new DataTable();\r\n    resultDT.Columns.Add(\"TableName\");\r\n    resultDT.Columns.Add(\"ColumnName\");\r\n\r\nvar tables = Selected.Tables;\r\n\r\nforeach(var t in tables) {\r\n    var columns = t.DataColumns.OrderBy(c => c.SourceColumn);\r\n    foreach(var c in columns){\r\n        var row = resultDT.NewRow();\r\n            row[\"TableName\"] = t.Name;\r\n            row[\"ColumnName\"] = c.Name;\r\n        resultDT.Rows.Add(row);\r\n    }\r\n}\r\n\r\nresultDT.Output();",
+      "Tooltip": "",
+      "ValidContexts": "Table"
+    },
+    {
+      "Name": "Tables.GetMQueryForThisTable",
+      "Enabled": "true",
+      "Execute": "var myObject = Model.Tables\r\n    .Where(t=>t.Name.ToString() == Selected.First().Name).First()\r\n    .Partitions.First()\r\n    ;\r\nvar myType = myObject.GetType();\r\nmyType.GetProperties()\r\n    .Where(p=> p.ToString().ToLower().Contains(\"mexpr\"))\r\n    .FirstOrDefault()\r\n    .GetValue(myObject, null)\r\n    .Output()\r\n    ;\r\n",
+      "Tooltip": "",
+      "ValidContexts": "Table"
+    },
+    {
+      "Name": "Tables.GetTop100Rows",
+      "Enabled": "true",
+      "Execute": "EvaluateDax(\"TOPN(100, \" + Selected.Table.DaxObjectFullName + \")\").Output();",
+      "Tooltip": "",
+      "ValidContexts": "Table"
+    },
+    {
+      "Name": "Tables.HideSelected",
+      "Enabled": "true",
+      "Execute": "Selected.Tables\r\n    .ForEach(c=> c.IsHidden = true);",
+      "Tooltip": "",
+      "ValidContexts": "Table"
+    },
+    {
+      "Name": "Tables.SetSummarizationToNone",
+      "Enabled": "true",
+      "Execute": "// SR: sets Summarization of Column of selected Table to None\r\n// Select either Table or Column in Table\r\nSelected.Table.Columns.ToList()\r\n    .ForEach(\r\n        c=> c.SummarizeBy = \r\n        TabularEditor.TOMWrapper.AggregateFunction.None);\r\n    ;",
+      "Tooltip": "",
+      "ValidContexts": "Table"
+    },
+    {
+      "Name": "TOM.Add_Description",
+      "Enabled": "true",
+      "Execute": "var theBody = @\"This measure was used for testing. Can be deleted\";\r\n\r\nSelected.Measure.Description = \r\n(\"SR [\" \r\n    + DateTime.Today.ToString(\"yyyy-MM-dd\") + \"]: \" \r\n    + theBody);\r\n    \r\n//Output(\"SR [\" \r\n//    + DateTime.Today.ToString(\"yyyy-MM-dd\") + \"]: \" \r\n//    + theBody);",
+      "Tooltip": "body of Descr has to be in code",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "TOM.CountRows_in_Tables",
+      "Enabled": "true",
+      "Execute": "//SR: Get num of rows in the Table for each Table in the model\r\n// EVALUATE is default start of EvaluateDax. So, to ev Calendar, DxQ = \"Calendar\"\r\n\r\nusing System.Data;\r\n\r\nvar tableNames = Model.Tables\r\n    .Where(t=>t.Columns.Count() != 0)\r\n    .Select(t=>t.Name).ToList();\r\nvar DxQ = \"UNION (\";\r\nforeach (var t in tableNames) \r\n{\r\n    DxQ = DxQ + \"ROW(\\\"TableName\\\",\" +\"\\\"\" + t + \"\\\",\" + \r\n    \"\\\"NumRows\\\",\" +\r\n    \"COUNTROWS('\" + t + \"'), \" +\r\n    \" \\\"NumRFrm\\\", \" +\r\n    \"FORMAT(COUNTROWS('\" + t + \"'), \\\"#,#\\\")),\" \r\n    ;\r\n}\r\nDxQ = DxQ.Remove(DxQ.Length - 2) + \")) \";\r\n//DxQ.Output();\r\n\r\nvar result = EvaluateDax(DxQ);\r\nresult.Output();",
+      "Tooltip": "",
+      "ValidContexts": "Model, Table, Column"
+    },
+    {
+      "Name": "TOM.GertBothDirectionRelationships",
+      "Enabled": "true",
+      "Execute": "//Selected.First().GetType().Output(); //TabularEditor.TOMWrapper.SingleColumnRelationship\r\n\r\nModel.Relationships.Where(\r\n    r=>r.CrossFilteringBehavior == \r\n        TabularEditor.TOMWrapper.CrossFilteringBehavior.BothDirections\r\n    ).Output();",
+      "Tooltip": "",
+      "ValidContexts": "Model, Relationship"
+    },
+    {
+      "Name": "TOM.GetMainModelInformation",
+      "Enabled": "true",
+      "Execute": "using System.Data;\r\n\r\nvar tblNum = Model.Tables.Count();\r\nvar mxColumns = 0;\r\nvar mxColumnsTableName = \"\";\r\nModel.Tables.ToList().ForEach(t=> \r\n    {\r\n        if(t.Columns.Count() > mxColumns)\r\n        {\r\n            mxColumns = t.Columns.Count();\r\n            mxColumnsTableName = t.Name;\r\n        }\r\n    }\r\n);\r\n\r\nvar autoDateTablesNum = Model.Tables.Where(t=>t.Name.Contains(\"LocalDateTable\")).Count();\r\n\r\nvar msrNum = Model.AllMeasures.Count();\r\nvar msrSvgNum = Model.AllMeasures.Where(m=>m.Expression.ToLower().Contains(\"svg\")).Count();\r\nvar lngstMeasure = \"\";\r\nvar mxMeasureLength = 0;\r\nModel.AllMeasures.ToList().ForEach(m=> \r\n    {\r\n        if (m.Expression.Length > mxMeasureLength)\r\n        {\r\n            mxMeasureLength = m.Expression.Length;\r\n            lngstMeasure = m.Name;\r\n        }\r\n    }\r\n);\r\n\r\nvar relNum = Model.Relationships.Count();\r\nvar rolesNum = Model.Roles.Count();\r\nvar perspNum = Model.Perspectives.Count();\r\nvar translNum = Model.TranslatedDescriptions.Count();\r\n\r\nvar result = new DataTable();\r\n    result.Columns.Add(\"DS_Name\");\r\n    result.Columns.Add(\"NumTables\");\r\n    result.Columns.Add(\"MxColInTables\");\r\n    result.Columns.Add(\"TableWithMxColumns\");\r\n    result.Columns.Add(\"AutoDateTablesNum\");\r\n    result.Columns.Add(\"NumOfMeasures\");\r\n    result.Columns.Add(\"NumOfMeasuresSVG\");    \r\n    result.Columns.Add(\"LongestMeasureLen\");\r\n    result.Columns.Add(\"LongestMeasureName\");\r\n    result.Columns.Add(\"NumOfRelationships\");\r\n    result.Columns.Add(\"NumOfRoles\");\r\n    result.Columns.Add(\"NumOfPerspectives\");\r\n    result.Columns.Add(\"NumOfTranslations\");\r\n    \r\nvar newRow = result.NewRow();\r\n    newRow[\"DS_Name\"] = Model.Database.ToString().Split('.')[1];\r\n    newRow[\"NumTables\"] = tblNum;\r\n    newRow[\"MxColInTables\"] = mxColumns;\r\n    newRow[\"TableWithMxColumns\"] = mxColumnsTableName;  \r\n    newRow[\"AutoDateTablesNum\"] = autoDateTablesNum; \r\n    newRow[\"NumOfMeasures\"] = msrNum;\r\n    newRow[\"NumOfMeasuresSVG\"] = msrSvgNum;\r\n    newRow[\"LongestMeasureLen\"] = mxMeasureLength;\r\n    newRow[\"LongestMeasureName\"] = lngstMeasure;\r\n    newRow[\"NumOfRelationships\"] = relNum;\r\n    newRow[\"NumOfRoles\"] = rolesNum;\r\n    newRow[\"NumOfPerspectives\"] = perspNum;\r\n    newRow[\"NumOfTranslations\"] = translNum;\r\n    \r\n    result.Rows.Add(newRow);\r\n    \r\n    result.Output();",
+      "Tooltip": "",
+      "ValidContexts": "Model"
+    },
+    {
+      "Name": "TOM.GetMethodsOfObject",
+      "Enabled": "true",
+      "Execute": "var myValues = Selected.First().GetType().GetMethods()\r\n    .Select(x=>x.Name) //Comment this before exporting to csv\r\n    ;\r\n\r\n    //string csv = String.Join(\"|||\", myValues.Select(x => x.ToString()).ToArray());\r\n    \r\n    //csv.Output();\r\n    myValues.Output();",
+      "Tooltip": "(uncomment to get csv to clipboard)",
+      "ValidContexts": "SingularObjects"
+    },
+    {
+      "Name": "TOM.GetMExpression",
+      "Enabled": "true",
+      "Execute": "//https://stackoverflow.com/questions/4144778/get-properties-and-values-from-unknown-object\r\nvar myObject = Selected.First();\r\nvar myType = myObject.GetType();\r\n\r\nmyType.GetProperties()\r\n    .Where(p=> p.ToString().ToLower().Contains(\"mexpr\"))\r\n    .FirstOrDefault()\r\n    .GetValue(myObject, null)\r\n    .Output()\r\n    ;",
+      "Tooltip": "",
+      "ValidContexts": "Partition, DataSource"
+    },
+    {
+      "Name": "TOM.GetPropertiesOfObject",
+      "Enabled": "true",
+      "Execute": "var myObject = Selected.First();\r\n\r\nvar myValues = myObject.GetType()\r\n    .GetProperties()\r\n    .OrderBy(p=>p.Name)\r\n    .Select(p=>p.Name)\r\n    ;\r\n    \r\n    //string csv = String.Join(\"|||\", myValues.Select(x => x.ToString()).ToArray());\r\n    \r\n    //csv.Output();\r\n    myValues.Output();",
+      "Tooltip": "(uncomment 4 export to csv clipboard)",
+      "ValidContexts": "SingularObjects"
+    },
+    {
+      "Name": "TOM.GetTypeOfObject",
+      "Enabled": "true",
+      "Execute": "Selected.First().GetType().Output();",
+      "Tooltip": "",
+      "ValidContexts": "SingularObjects"
+    },
+    {
+      "Name": "TOM.UpdateMeasures_VS_Code_DAX",
+      "Enabled": "true",
+      "Execute": "//SR[2022-02-19]: this script grabs all measures from .DAX file and updates m.Expr in PBI\r\n//TODO: create new measure if one was created in the .DAX file\r\n\r\n// var trimChars = {'\\r', '\\n', ' ', '\\t'} //-->will not work, as we need to REPLACE all occurrences within string, not only TRIM\r\nvar path = @\"C:\\Users\\Sergii_Razumov\\OneDrive - EPAM\\Projects\\Danone\\IBS\\IBS Split\\MDM KPIs Ph2\\MDM Model Measures.dax\";\r\n\r\nvar tableName = \"Metrics\";\r\nvar tableToAddMeasures = Model.Tables.Where(t=>t.Name == tableName).FirstOrDefault();\r\nif (tableToAddMeasures == null) \r\n{\r\n    String.Format(\"No table to Add Measures with provided Name: '{0}'\", tableName).Output();\r\n}\r\nvar dispFolder = \"MDM KPIs Phase 2\";\r\n\r\nvar daxList = System.IO.File\r\n                .ReadAllText(path)\r\n                .Replace(\"-------------------------------------------------------\", \"Ψ\")\r\n                .Replace(\"//Expression:\", \"λ\")\r\n                .Split('Ψ');\r\n foreach (string dax in daxList)\r\n            {\r\n                if (dax != null && dax != \"\")\r\n                {\r\n                    var mName = dax.Split('λ')[0].Replace(\"=\", \"\").Trim();\r\n                    var mExpression = \"\\n\" + dax.Split('λ')[1].Trim();\r\n                    //SR[2022-02-22] Name.Contains() --> == (inclusive names!!)\r\n                    var measure = Model.AllMeasures.Where(m=> m.Name == mName).FirstOrDefault();\r\n                    if (measure != null && \r\n                        !String.Equals(\r\n                            measure.Expression.Replace(\" \", \"\").Replace(\"\\n\",\"\").Replace(\"\\r\",\"\")\r\n                            , mExpression.Replace(\" \", \"\").Replace(\"\\n\",\"\").Replace(\"\\r\",\"\")\r\n                            )\r\n                        )\r\n                    {\r\n                        measure.Expression = mExpression;\r\n                    }\r\n                    //SR[2022-02-22]: Adding a new Measure \r\n                    if (measure == null)\r\n                    {\r\n                        var newMeasure = tableToAddMeasures.AddMeasure(\r\n                            mName,\r\n                            mExpression,\r\n                            dispFolder\r\n                        );\r\n                    }\r\n                    //measure.Output();\r\n                }\r\n            }\r\n",
+      "Tooltip": "",
+      "ValidContexts": "Model, Measure"
+    },
+    {
+      "Name": "x_RND.Measure.UpdatedMeasureStamp_DescrExtendedProp",
+      "Enabled": "true",
+      "Execute": "var measure = Selected.Measure;\r\nvar meDescr = measure.Description;\r\nvar meExtPr = measure.GetExtendedProperty(\"Upd_Hist\");\r\n\r\nvar currDate = DateTime.Today.ToString(\"yyy-MM-dd\");\r\n\r\nmeasure.Description = string.Format(\"SR[{0}]: updated; {1}\", currDate, meDescr);\r\nmeasure.SetExtendedProperty(\"Upd_Hist\", //\"String\",\r\n    meExtPr + \"SR:\" + currDate + \":Format approach. Ghita used appr as to int, while her base measure returned str, \\r\\n\",\r\n    TabularEditor.TOMWrapper.ExtendedPropertyType.String);",
+      "Tooltip": "unhide Column with adding a Descr",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "x_RND.MeasureTextReplace",
+      "Enabled": "true",
+      "Execute": "Selected.Measure.Expression = \r\n    Selected.Measure.Expression.Replace(\r\n        \"Volume Num_SR\",\r\n        \"Net Sales Num_SR\"\r\n        );\r\n",
+      "Tooltip": "use as a template for str replacements",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "x_RND.Objects.MyObjects_Created_Modified",
+      "Enabled": "true",
+      "Execute": "var mod = Model;\r\nvar myMeasures = mod.AllMeasures.Where(\r\n        m=> m.GetExtendedProperty(\"Origin\") != null ||\r\n            m.GetExtendedProperty(\"Upd_Hist\") != null \r\n        );\r\n        \r\nvar myColumns = mod.AllColumns.Where(\r\n        c=> c.GetExtendedProperty(\"Origin\") != null ||\r\n            c.GetExtendedProperty(\"Upd_Hist\") != null \r\n        );\r\nvar myTables = mod.Tables.Where(\r\n        t=> t.GetExtendedProperty(\"Origin\") != null ||\r\n            t.GetExtendedProperty(\"Upd_Hist\") != null \r\n        );        \r\nmyMeasures.Output();\r\nmyColumns.Output();\r\nmyTables.Output();",
+      "Tooltip": "unhide Column with adding a Descr",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "x_RND.SetExtendedProperty_History",
+      "Enabled": "true",
+      "Execute": "var currDate = DateTime.Today.ToString(\"yyyy-MM-dd\");\r\nvar extPropName = \"History\";\r\n\r\nvar extPropNewValue = string.Format(\"Sergii_Razumov[{0}]: Created for P2p3 charts;\"\r\n                            ,currDate);\r\n\r\nvar obj = Selected.First();\r\n\r\nif (obj is TabularEditor.TOMWrapper.Measure){\r\n    var objsToProcess = Selected.Measures;\r\n    objsToProcess.ForEach(o=> o.SetExtendedProperty(extPropName, \r\n    o.GetExtendedProperty(\"History\") + \r\n        extPropNewValue,\r\n                TOMWrapper.ExtendedPropertyType.String));\r\n}\r\n\r\nif (obj is TabularEditor.TOMWrapper.Column){\r\n    var objsToProcess = Selected.Columns;\r\n    objsToProcess.ForEach(o=> o.SetExtendedProperty(extPropName, \r\n    o.GetExtendedProperty(\"History\") + \r\n        extPropNewValue,\r\n                TOMWrapper.ExtendedPropertyType.String));\r\n}\r\n        \r\nif (obj is TabularEditor.TOMWrapper.CalculationGroupTable){\r\n    var objsToProcess = Selected.CalculationGroups;\r\n     objsToProcess.ForEach(o=> o.SetExtendedProperty(extPropName, \r\n        o.GetExtendedProperty(\"History\") + \r\n            extPropNewValue,\r\n                    TOMWrapper.ExtendedPropertyType.String));\r\n}\r\n        \r\n//Selected.CalculationGroups .First().GetType().Output();",
+      "Tooltip": "",
+      "ValidContexts": "Table, Measure, Column"
+    },
+    {
+      "Name": "x_RND.SetExtendedProperty_Origin",
+      "Enabled": "true",
+      "Execute": "var extPropName = \"Origin\";\r\nvar extPropValue = \"Sergii_Razumov\";\r\n\r\nvar obj = Selected.First();\r\n\r\nif (obj is TabularEditor.TOMWrapper.Measure){\r\n    var objsToProcess = Selected.Measures;\r\n    objsToProcess.ForEach(o=> o.SetExtendedProperty(extPropName, extPropValue,\r\n            TOMWrapper.ExtendedPropertyType.String));\r\n}\r\n\r\nif (obj is TabularEditor.TOMWrapper.Column){\r\n    var objsToProcess = Selected.Columns;\r\n    objsToProcess.ForEach(o=> o.SetExtendedProperty(extPropName, extPropValue,\r\n            TOMWrapper.ExtendedPropertyType.String));\r\n}\r\n        \r\nif (obj is TabularEditor.TOMWrapper.CalculationGroupTable){\r\n    var objsToProcess = Selected.CalculationGroups;\r\n    objsToProcess.ForEach(o=> o.SetExtendedProperty(extPropName, extPropValue,\r\n            TOMWrapper.ExtendedPropertyType.String));\r\n}\r\n        \r\n//Selected.CalculationGroups .First().GetType().Output();",
+      "Tooltip": "",
+      "ValidContexts": "Table, Measure, Column"
+    },
+    {
+      "Name": "x_RND.TOM.FindObjectsModifiedByMe",
+      "Enabled": "true",
+      "Execute": "var mod = Model;\r\nvar myMeasures = mod.AllMeasures.Where(\r\n        m=> m.GetExtendedProperty(\"Origin\") != null ||\r\n            m.GetExtendedProperty(\"Upd_Hist\") != null \r\n        );\r\n        \r\nvar myColumns = mod.AllColumns.Where(\r\n        c=> c.GetExtendedProperty(\"Origin\") != null ||\r\n            c.GetExtendedProperty(\"Upd_Hist\") != null \r\n        );\r\nvar myTables = mod.Tables.Where(\r\n        t=> t.GetExtendedProperty(\"Origin\") != null ||\r\n            t.GetExtendedProperty(\"Upd_Hist\") != null \r\n        );        \r\nmyMeasures.Output();\r\nmyColumns.Output();\r\nmyTables.Output();\r\n",
+      "Tooltip": "",
+      "ValidContexts": "Measure"
+    },
+    {
+      "Name": "!! tmp MDM Descr ToDo --> Done",
+      "Enabled": "true",
+      "Execute": "//SR: for working with list of Measures in a single .dax\r\n\r\nModel.AllMeasures\r\n    .Where(m=>m.Description == \"ToDo\" && m.Expression.ToLower().Contains(\"done\"))\r\n        .ToList()\r\n        .ForEach(m=>\r\n            {\r\n                m.Description = \"Done\";\r\n            })\r\n        ;",
+      "Tooltip": "placeholder for tmp scripts",
+      "ValidContexts": "Measure"
+    }
+  ]
+}
