@@ -36,6 +36,13 @@
       "ValidContexts": "Column"
     },
     {
+      "Name": "Columns.SetSummarizationToNone",
+      "Enabled": "true",
+      "Execute": "// SR: sets Summarization of Column to None\r\nModel.AllColumns.Where(c=> c.SummarizeBy != \r\n                    TabularEditor.TOMWrapper.AggregateFunction.None)\r\n                .ToList()\r\n                .ForEach(\r\n                    c=> c.SummarizeBy = \r\n                    TabularEditor.TOMWrapper.AggregateFunction.None);\r\n",
+      "Tooltip": "",
+      "ValidContexts": "Column"
+    },
+    {
       "Name": "Columns.UnhideWithUnidingRootTableDescrAnnot",
       "Enabled": "true",
       "Execute": "var currDate = DateTime.Today.ToString(\"yyyy-MM-dd\");\r\nvar column = Selected.Column;\r\nvar table = column.Table;\r\n\r\nvar colAnnUpd = column.GetExtendedProperty(\"Upd_Hist\");\r\nvar tblAnnUpd = table.GetExtendedProperty(\"Upd_Hist\");\r\n\r\n\r\n//// SR: TODO: investigate ops over Table. For now PBI dies when updating Table Props\r\n//table.IsHidden = false; //SR: as of 30/11/2021 -- Unhide manually in PBI\r\n//table.Description = string.Format(\"SR[{0}]: unhidden\", currDate) + table.Description;\r\n//table.SetExtendedProperty(\"Upd_Hist\", //\"String\",\r\n//    tblAnnUpd + \"SR:\" + currDate + \": Unhidden, \\r\\n\",\r\n//    TabularEditor.TOMWrapper.ExtendedPropertyType.String); \r\n\r\ncolumn.IsHidden = false;\r\ncolumn.Description = string.Format(\"SR[{0}]: unhidden\", currDate) + column.Description;\r\ncolumn.SetExtendedProperty(\"Upd_Hist\", //\"String\",\r\n    colAnnUpd + \"SR:\" + currDate + \": Unhidden, \\r\\n\",\r\n    TabularEditor.TOMWrapper.ExtendedPropertyType.String); \r\n    \r\n//Selected.Description = \"\";\r\n//Selected.Table.SetExtendedProperty(\"Upd_Hist\", \"\");",
@@ -281,11 +288,11 @@
       "ValidContexts": "Measure"
     },
     {
-      "Name": "Columns.SetSummarizationToNone",
+      "Name": "Tables.GetSample(15%)Rows",
       "Enabled": "true",
-      "Execute": "// SR: sets Summarization of Column to None\r\nModel.AllColumns.Where(c=> c.SummarizeBy != \r\n                    TabularEditor.TOMWrapper.AggregateFunction.None)\r\n                .ToList()\r\n                .ForEach(\r\n                    c=> c.SummarizeBy = \r\n                    TabularEditor.TOMWrapper.AggregateFunction.None);\r\n",
-      "Tooltip": "",
-      "ValidContexts": "Column"
+      "Execute": "//SR: gets Sample data from the Table, 15% makes results distributive\r\n\r\nvar countR = Convert.ToInt32(\r\n        EvaluateDax(\"COUNTROWS(\" + Selected.Table.DaxObjectFullName + \")\")\r\n    );\r\nvar sampleSize = Convert.ToInt32(countR * 0.15);\r\n\r\nvar colName = \"\\\"N\\\"\";\r\n\r\nEvaluateDax(\r\n    @\"SAMPLE(\" + sampleSize + \", \" \r\n        + \"ADDCOLUMNS(\"\r\n            + Selected.Table.DaxObjectFullName \r\n        + \", \" + colName + \", 1\"\r\n        + \"),\" + colName + \", ASC)\"\r\n    ).Output();",
+      "Tooltip": "15%",
+      "ValidContexts": "Table"
     }
   ]
 }
