@@ -290,8 +290,8 @@
     {
       "Name": "Tables.GetSample(15%)Rows",
       "Enabled": "true",
-      "Execute": "//SR: gets Sample data from the Table, 15% makes results distributive\r\n\r\nvar countR = Convert.ToInt32(\r\n        EvaluateDax(\"COUNTROWS(\" + Selected.Table.DaxObjectFullName + \")\")\r\n    );\r\nvar sampleSize = Convert.ToInt32(countR * 0.15);\r\nvar colName = \"\\\"N\\\"\";\r\n\r\nEvaluateDax(\r\n    @\"SAMPLE(\" + sampleSize + \", \" \r\n        + \"ADDCOLUMNS(\"\r\n            + Selected.Table.DaxObjectFullName \r\n        + \", \" + colName + \", FORMAT(\" + sampleSize + \", \\\"#,#\\\")\"\r\n        + \"),\" + colName + \", ASC)\"\r\n    )\r\n.Output();\r\n    \r\n    \r\n    ",
-      "Tooltip": "15%",
+      "Execute": "//SR: gets Sample data from the Table, 15% makes results distributive\r\n\r\nvar countR = Convert.ToInt32(\r\n        EvaluateDax(\"COUNTROWS(\" + Selected.Table.DaxObjectFullName + \")\")\r\n    );\r\nvar sampleSize = Convert.ToInt32(countR * 0.15);\r\nvar colName = \"\\\"N\\\"\";\r\nvar dax = @\"SAMPLE(\" + sampleSize + \", \" \r\n        + \"ADDCOLUMNS(\"\r\n            + Selected.Table.DaxObjectFullName \r\n        + \", \" + colName + \", FORMAT(\" + sampleSize + \", \\\"#,#\\\")\"\r\n        + \"),\" + colName + \", ASC)\";\r\n\r\n//dax.Output();\r\nEvaluateDax(dax).Output();\r\n    \r\n    \r\n    ",
+      "Tooltip": "15%; use dax.Ountput() to get the Qwr into the DAX Studio",
       "ValidContexts": "Table"
     }
   ]
