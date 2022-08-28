@@ -64,13 +64,6 @@
       "ValidContexts": "Measure"
     },
     {
-      "Name": "Measures.DAX_Format",
-      "Enabled": "true",
-      "Execute": "\r\nModel.AllMeasures.ToList().ForEach(m=>m.FormatDax());\r\n\r\n//foreach(var m in Model.AllMeasures)\r\n//{\r\n//    m.FormatDax();\r\n//}",
-      "Tooltip": "",
-      "ValidContexts": "Measure"
-    },
-    {
       "Name": "Measures.ExportToFile",
       "Enabled": "true",
       "Execute": "// Export properties for the currently selected objects:\r\n\r\nvar folder = \"C:/Users/Sergii_Razumov/Downloads/\";\r\nvar tsv = ExportProperties(Selected);\r\n\r\nSaveFile(folder + \"MeasureExport.tsv\", tsv);",
@@ -159,6 +152,13 @@
       "Enabled": "true",
       "Execute": "var myObject = Model.Tables\r\n    .Where(t=>t.Name.ToString() == Selected.First().Name).First()\r\n    .Partitions.First()\r\n    ;\r\nvar myType = myObject.GetType();\r\nmyType.GetProperties()\r\n    .Where(p=> p.ToString().ToLower().Contains(\"mexpr\"))\r\n    .FirstOrDefault()\r\n    .GetValue(myObject, null)\r\n    .Output()\r\n    ;\r\n",
       "Tooltip": "",
+      "ValidContexts": "Table"
+    },
+    {
+      "Name": "Tables.GetSample(15%)Rows",
+      "Enabled": "true",
+      "Execute": "//SR: gets Sample data from the Table, 15% makes results distributive\r\n\r\nvar countR = Convert.ToInt32(\r\n        EvaluateDax(\"COUNTROWS(\" + Selected.Table.DaxObjectFullName + \")\")\r\n    );\r\nvar sampleSize = Convert.ToInt32(countR * 0.15);\r\nvar colName = \"\\\"N\\\"\";\r\nvar dax = @\"SAMPLE(\" + sampleSize + \", \" \r\n        + \"ADDCOLUMNS(\"\r\n            + Selected.Table.DaxObjectFullName \r\n        + \", \" + colName + \", FORMAT(\" + sampleSize + \", \\\"#,#\\\")\"\r\n        + \"),\" + colName + \", ASC)\";\r\n\r\n//dax.Output();\r\nEvaluateDax(dax).Output();\r\n    \r\n    \r\n    ",
+      "Tooltip": "15%; use dax.Ountput() to get the Qwr into the DAX Studio",
       "ValidContexts": "Table"
     },
     {
@@ -288,11 +288,11 @@
       "ValidContexts": "Measure"
     },
     {
-      "Name": "Tables.GetSample(15%)Rows",
+      "Name": "Measures.DAX_Format",
       "Enabled": "true",
-      "Execute": "//SR: gets Sample data from the Table, 15% makes results distributive\r\n\r\nvar countR = Convert.ToInt32(\r\n        EvaluateDax(\"COUNTROWS(\" + Selected.Table.DaxObjectFullName + \")\")\r\n    );\r\nvar sampleSize = Convert.ToInt32(countR * 0.15);\r\nvar colName = \"\\\"N\\\"\";\r\nvar dax = @\"SAMPLE(\" + sampleSize + \", \" \r\n        + \"ADDCOLUMNS(\"\r\n            + Selected.Table.DaxObjectFullName \r\n        + \", \" + colName + \", FORMAT(\" + sampleSize + \", \\\"#,#\\\")\"\r\n        + \"),\" + colName + \", ASC)\";\r\n\r\n//dax.Output();\r\nEvaluateDax(dax).Output();\r\n    \r\n    \r\n    ",
-      "Tooltip": "15%; use dax.Ountput() to get the Qwr into the DAX Studio",
-      "ValidContexts": "Table"
+      "Execute": "// SR: measure obj has .FormatDax() method\r\n\r\nModel.AllMeasures.ToList().ForEach(m=>m.FormatDax());\r\n\r\n//foreach(var m in Model.AllMeasures)\r\n//{\r\n//    m.FormatDax();\r\n//}",
+      "Tooltip": "",
+      "ValidContexts": "Measure"
     }
   ]
 }
