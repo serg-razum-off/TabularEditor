@@ -164,7 +164,7 @@
     {
       "Name": "TOM.CountRows_in_Tables",
       "Enabled": "true",
-      "Execute": "//SR: Get num of rows in the Table for each Table in the model\r\n// EVALUATE is default start of EvaluateDax. So, to ev Calendar, DxQ = \"Calendar\"\r\n\r\nusing System.Data;\r\n\r\nvar tableNames = Model.Tables\r\n    .Where(t=>t.Columns.Count() != 0)\r\n    .Select(t=>t.Name).ToList();\r\nvar DxQ = \"UNION (\";\r\nforeach (var t in tableNames) \r\n{\r\n    DxQ = DxQ + \"ROW(\\\"TableName\\\",\" +\"\\\"\" + t + \"\\\",\" + \r\n    \"\\\"NumRows\\\",\" +\r\n    \"COUNTROWS('\" + t + \"'), \" +\r\n    \" \\\"NumRFrm\\\", \" +\r\n    \"FORMAT(COUNTROWS('\" + t + \"'), \\\"#,#\\\")),\" \r\n    ;\r\n}\r\nDxQ = DxQ.Remove(DxQ.Length - 2) + \")) \";\r\n//DxQ.Output();\r\n\r\nvar result = EvaluateDax(DxQ);\r\nresult.Output();",
+      "Execute": "//SR: Get num of rows in the Table for each Table in the model\r\n// EVALUATE is default startLine of EvaluateDax(). So, to ev Calendar, DxQ = \"Calendar\"\r\n\r\nusing System.Data;\r\n\r\nvar tableNames = Model.Tables\r\n    .Where(t=>t.Columns.Count() != 0)\r\n    .Select(t=>t.Name).ToList();\r\nvar DxQ = \"UNION (\";\r\nforeach (var t in tableNames) \r\n{\r\n    DxQ = DxQ + \"ROW(\\\"TableName\\\",\" +\"\\\"\" + t + \"\\\",\" + \r\n    \"\\\"NumRows\\\",\" +\r\n    \"COUNTROWS('\" + t + \"'), \" +\r\n    \" \\\"NumRFrm\\\", \" +\r\n    \"FORMAT(COUNTROWS('\" + t + \"'), \\\"#,#\\\")),\" \r\n    ;\r\n}\r\nDxQ = DxQ.Remove(DxQ.Length - 2) + \")) \";\r\n//DxQ.Output();\r\n\r\nvar result = EvaluateDax(DxQ);\r\nresult.Output();",
       "Tooltip": "",
       "ValidContexts": "Model, Table, Column"
     },
@@ -251,6 +251,13 @@
       "Execute": "var mod = Model;\r\nvar myMeasures = mod.AllMeasures.Where(\r\n        m=> m.GetExtendedProperty(\"Origin\") != null ||\r\n            m.GetExtendedProperty(\"Upd_Hist\") != null \r\n        );\r\n        \r\nvar myColumns = mod.AllColumns.Where(\r\n        c=> c.GetExtendedProperty(\"Origin\") != null ||\r\n            c.GetExtendedProperty(\"Upd_Hist\") != null \r\n        );\r\nvar myTables = mod.Tables.Where(\r\n        t=> t.GetExtendedProperty(\"Origin\") != null ||\r\n            t.GetExtendedProperty(\"Upd_Hist\") != null \r\n        );        \r\nmyMeasures.Output();\r\nmyColumns.Output();\r\nmyTables.Output();\r\n",
       "Tooltip": "",
       "ValidContexts": "Measure"
+    },
+    {
+      "Name": "TOM.GetTablesWithColumns",
+      "Enabled": "true",
+      "Execute": "//SR: Shows Columns Names for all Tables in the Model\r\n\r\nusing System.Data;\r\n\r\n\r\nvar resultDT = new DataTable();\r\n    resultDT.Columns.Add(\"TableName\");\r\n    resultDT.Columns.Add(\"ColumnName\");\r\n\r\nvar tables = Model.Tables;\r\n\r\nforeach(var t in tables) {\r\n    var columns = t.DataColumns.OrderBy(c => c.SourceColumn);\r\n    foreach(var c in columns){\r\n        var row = resultDT.NewRow();\r\n            row[\"TableName\"] = t.Name;\r\n            row[\"ColumnName\"] = c.Name;\r\n        resultDT.Rows.Add(row);\r\n    }\r\n}\r\n\r\nresultDT.Output();",
+      "Tooltip": "",
+      "ValidContexts": "Model, Table"
     }
   ]
 }
